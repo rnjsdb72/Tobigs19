@@ -1,77 +1,76 @@
+n, m = map(lambda x: int(x), input().split())
 # 문제01
-## 풀이01
-n, m = map(lambda x: int(x), input().split())
 numbers = list(map(lambda x: int(x), input().split()))
 
-res = []
-for number in numbers:
-    if number > m:
-        continue
-    if len(res)==3:
-        if res[0] < res[1]:
-            res[0], res[1] = res[1], res[0]
-        if res[1] < res[2]:
-            res[1], res[2] = res[2], res[1]
-            if res[0] < res[1]:
-                res[0], res[1] = res[1], res[0]
-                
-        if number > res[-1]:
-            res.pop()
-            res.append(number)
-        else:
-            pass
-    else:
-        res.append(number)
-print(sum(res))
-# 풀이02
-n, m = map(lambda x: int(x), input().split())
-numbers = list(map(lambda x: int(x), input().split()))
-
-res = [number for number in numbers if number<=m]
-res = sorted(res)[-3:]
-
-print(sum(res))
+res = 0
+for i in range(len(numbers)-2):
+    for j in range(i+1,len(numbers)-1):
+        for k in range(j+1, len(numbers)):
+            sum_ = numbers[i]+numbers[j]+numbers[k]
+            if (sum_ <= m) and (sum_ > res):
+                res = sum_
+print(res)
 
 # 문제02
-def combine(len_, lst=[]):
+def permutation(numbers, n):
     """
-    리스트에서 각 숫자의 위치(index)를 부여하는 함수
-    가능한 모든 조합을 리스트 형태로 반환
+    숫자의 순열을 계산하는 함수
+
+    Args:
+        numbers: 숫자 리스트
+        n: 선택할 숫자 개수
+
+    Returns:
+        res: 해당 숫자의 모든 순열의 경우의 수가 담긴 리스트
     """
-    if len(lst)==0:
-        lst = [[i] for i in range(len_)]
-        return combine(len_, lst)
-    
-    if len_!=len(lst[0]):
-        for elem in lst:
-            for i in range(len_):
-                if i not in elem:
-                    elem.append(i)
-        return combine(len_, lst)
-    else:
-        for elem in lst:
-            for i in range(len_):
-                if i not in elem:
-                    elem.append(i)
-        return lst
+    res = []
+    if n>len(numbers):
+        return res
+    if n == 1:
+        for i in numbers:
+            res.append([i])
+    elif n > 1:
+        for i in range(len(numbers)):
+            ans = [i for i in numbers]
+            ans.remove(numbers[i])
+            for rest in permutation(ans, n-1):
+                res.append([numbers[i]]+rest)
+    return res
+
+def count_prime(numbers):
+    """
+    소수 개수 파악하는 함수
+
+    Args:
+        numbers: 숫자 조합 리스트
+
+    Returns:
+        res: 숫자 조합 중 소수 개수
+    """
+    res = []
+    for number in numbers:
+        num = int("".join(number))
+        if num == 2:
+            res.append(num)
+            
+        stopper=0
+        for i in range(2, num//2+1):
+            if num%i == 0:
+                stopper = 1
+                break
+        if stopper==0 and num not in [0,1]:
+            res.append(num)
+    return res
 
 numbers = ','.join(input()).split(',')
-len_=len(numbers)
 
 res = []
-for combs in combine(len_):
-    stopper = 0
-    int_ = [-1]*len_
-    for n, c in zip(numbers, combs):
-        int_[c] = n
-    num = int(''.join(int_))
-    for i in range(2, num//2+1):
-        if num%i == 0:
-            stopper = 1
-            break
-    if stopper==0:
-        res.append(num)
+comb_nums = []
+for n_ in range(1, len(numbers)+1):
+    comb_nums += permutation(numbers, n_)
 
+res = count_prime(comb_nums)
+res = set(res)
 print(len(res))
 
 # 문제03
@@ -125,31 +124,33 @@ print(min(res))
 heights = [int(input()) for i in range(9)]
 
 combs = []
-for i in range(9):
-    for j in range(9):
-        if i<j:
-            heights_ = heights.copy()
-            heights_.pop(i)
-            heights_.pop(j-1)
-            if sum(heights_)==1000:
-                print(*sorted(heights_), sep="\n")
-                break
+stopper = 0
+for i in range(8):
+    for j in range(i+1, 9):
+        heights_ = heights.copy()
+        heights_.pop(j)
+        heights_.pop(i)
+        if sum(heights_)==1000:
+            print(*sorted(heights_), sep="\n")
+            stopper=1
+            break
+    if stopper==1:
+        break
 
 # 문제05
 word = input()
 
 len_ = len(word)
 res = None
-for i in range(len_):
-    for j in range(len_):
-        if i < j:
-            # 글자 나누기
-            words = [word[:i+1], word[i+1:j+1], word[j+1:]]
-            # 뒤집기
-            words = [word_[::-1] for word_ in words]
-            # 합치기
-            if not res:
-                res = ''.join(words)
-            if res > ''.join(words):
-                res = ''.join(words)
+for i in range(1, len_-1):
+    for j in range(i+1, len_):
+        # 글자 나누기
+        words = [word[:i], word[i:j], word[j:]]
+        # 뒤집기
+        words = [word_[::-1] for word_ in words]
+        # 합치기
+        if not res:
+            res = ''.join(words)
+        if res > ''.join(words):
+            res = ''.join(words)
 print(res)
